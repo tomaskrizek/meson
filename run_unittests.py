@@ -5039,6 +5039,19 @@ endian = 'little'
                 max_count = max(max_count, line.count(search_term))
         self.assertEqual(max_count, 1, 'Export dynamic incorrectly deduplicated.')
 
+    def test_compiler_libs_static_dedup(self):
+        testdir = os.path.join(self.unit_test_dir, '55 dedup compiler libs')
+        self.init(testdir)
+        build_ninja = os.path.join(self.builddir, 'build.ninja')
+        with open(build_ninja, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        for lib in ('-ldl', '-lm', '-lc', '-lrt'):
+            for line in lines:
+                if lib not in line:
+                    continue
+                # Assert that
+                self.assertEqual(len(line.split(lib)), 2, msg=(lib, line))
+
 
 def should_run_cross_arm_tests():
     return shutil.which('arm-linux-gnueabihf-gcc') and not platform.machine().lower().startswith('arm')
